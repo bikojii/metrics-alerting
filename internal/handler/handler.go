@@ -1,27 +1,24 @@
 package handler
 
 import (
+	"fmt"
 	models "github.com/admin/metrics-alerting/internal/model"
 	"github.com/admin/metrics-alerting/internal/repository"
+	"github.com/go-chi/chi/v5"
+	"html"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 func UpdateHandler(store *repository.MemStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
+		mType := chi.URLParam(r, "type")
+		name := chi.URLParam(r, "name")
+		valueStr := chi.URLParam(r, "value")
 
-		parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/update/"), "/")
-		if len(parts) < 2 || parts[1] == "" {
-			http.Error(w, "Not Found", http.StatusNotFound)
-			return
+		if mType == "" || name == "" || valueStr == "" {
+			http.Error(w, "Not Found", http.StatusBadRequest)
 		}
-
-		mType, name, valueStr := parts[0], parts[1], parts[2]
 
 		var metric models.Metrics
 
@@ -38,7 +35,7 @@ func UpdateHandler(store *repository.MemStorage) http.HandlerFunc {
 				Value: &value,
 			}
 
-		case "counter":
+		case models.Counter:
 			value, err := strconv.ParseInt(valueStr, 10, 64)
 			if err != nil {
 				http.Error(w, "Bad Request: invalid counter value", http.StatusBadRequest)
@@ -59,5 +56,53 @@ func UpdateHandler(store *repository.MemStorage) http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
+	}
+}
+
+func GetValueHandler(store *repository.MemStorage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		mType := chi.URLParam(r, "type")
+		name := chi.URLParam(r, "name")
+
+		if mType == "" || name == "" {
+			http.Error(w, "Not Found", http.StatusNotFound)
+			return
+		}
+
+		metric, found := store.GetMetric(name, mType)
+		if !found {
+			http.Error(w, "Metric not found", http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+
+		switch metric.MType {
+		case models.Gauge:
+			fmt.Fprintf(w, "%f", *metric.Value)
+
+		case models.Counter:
+			fmt.Fprintf(w, "%d", *metric.Delta)
+		}
+	}
+}
+
+func ListMetricsHandler(store *repository.MemStorage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+
+		fmt.Fprintf(w, "<html><body><h1>Metrics</h1><ul>")
+
+		for name, value := range store.Gauges {
+			fmt.Fprintf(w, "<li>%s = %f</li>", html.EscapeString(name), value)
+		}
+
+		for name, delta := range store.Counters {
+			fmt.Fprintf(w, "<li>%s = %d</li>", html.EscapeString(name), delta)
+		}
+
+		fmt.Fprintf(w, "</ul></body></html>")
 	}
 }
