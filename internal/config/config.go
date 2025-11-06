@@ -30,12 +30,13 @@ func LoadServerConfig() *ServerConfig {
 	return cfg
 }
 
+// для агента
 func LoadAgentConfig() *AgentConfig {
 	cfg := &AgentConfig{}
 
 	fs := flag.NewFlagSet("agent", flag.ExitOnError)
 	fs.StringVar(&cfg.ServerAddress, "a", "localhost:8080", "Address of metrics server")
-	fs.IntVar(&cfg.ReportInterval, "r", 10, "Report interval in seconds")
+	fs.IntVar(&cfg.ReportInterval, "r", 2, "Report interval in seconds")
 	fs.IntVar(&cfg.PollInterval, "p", 2, "Poll interval in seconds")
 
 	if err := fs.Parse(os.Args[1:]); err != nil {
