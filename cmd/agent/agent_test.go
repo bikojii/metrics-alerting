@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	models "github.com/admin/metrics-alerting/internal/model"
+	models "github.com/bikojii/metrics-alerting/internal/model"
 )
 
 // Тестируем сбор метрик

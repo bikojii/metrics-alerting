@@ -5,9 +5,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/admin/metrics-alerting/internal/handler"
-	"github.com/admin/metrics-alerting/internal/model"
-	"github.com/admin/metrics-alerting/internal/repository"
+	"github.com/bikojii/metrics-alerting/internal/handler"
+	"github.com/bikojii/metrics-alerting/internal/model"
+	"github.com/bikojii/metrics-alerting/internal/repository"
 )
 
 func TestUpdateHandlerGauge(t *testing.T) {
@@ -21,6 +21,7 @@ func TestUpdateHandlerGauge(t *testing.T) {
 	h(w, req)
 
 	resp := w.Result()
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Ожидался статус 200, получили %d", resp.StatusCode)
 	}
@@ -46,6 +47,8 @@ func TestUpdateHandlerCounter(t *testing.T) {
 	h(w, req)
 
 	resp := w.Result()
+	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Ожидался статус 200, получили %d", resp.StatusCode)
 	}

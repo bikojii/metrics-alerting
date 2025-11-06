@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	models "github.com/admin/metrics-alerting/internal/model"
+	models "github.com/bikojii/metrics-alerting/internal/model"
 	"math/rand"
 	"net/http"
 	"runtime"

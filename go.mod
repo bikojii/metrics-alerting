@@ -1,4 +1,4 @@
-module github.com/admin/metrics-alerting
+module github.com/bikojii/metrics-alerting
 
 go 1.24.2
 

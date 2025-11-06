@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/admin/metrics-alerting/internal/handler"
-	"github.com/admin/metrics-alerting/internal/repository"
+	"github.com/bikojii/metrics-alerting/internal/handler"
+	"github.com/bikojii/metrics-alerting/internal/repository"
 	"github.com/go-chi/chi/v5"
 	"log"
 	"net/http"

@@ -2,8 +2,8 @@ package handler
 
 import (
 	"fmt"
-	models "github.com/admin/metrics-alerting/internal/model"
-	"github.com/admin/metrics-alerting/internal/repository"
+	models "github.com/bikojii/metrics-alerting/internal/model"
+	"github.com/bikojii/metrics-alerting/internal/repository"
 	"github.com/go-chi/chi/v5"
 	"html"
 	"net/http"

@@ -1,6 +1,6 @@
 package repository
 
-import models "github.com/admin/metrics-alerting/internal/model"
+import models "github.com/bikojii/metrics-alerting/internal/model"
 
 type MemStorage struct {
 	Gauges   map[string]float64
