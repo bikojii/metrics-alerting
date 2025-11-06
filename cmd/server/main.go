@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/bikojii/metrics-alerting/internal/config"
 	"github.com/bikojii/metrics-alerting/internal/handler"
 	"github.com/bikojii/metrics-alerting/internal/repository"
 	"github.com/go-chi/chi/v5"
@@ -9,6 +10,8 @@ import (
 )
 
 func main() {
+	cfg := config.LoadServerConfig()
+
 	store := repository.NewMemStorage()
 	r := chi.NewRouter()
 
@@ -16,6 +19,6 @@ func main() {
 	r.Get("/value/{type}/{name}", handler.GetValueHandler(store))
 	r.Get("/", handler.ListMetricsHandler(store))
 
-	log.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Println("Server running on : ", cfg.Address)
+	log.Fatal(http.ListenAndServe(cfg.Address, r))
 }

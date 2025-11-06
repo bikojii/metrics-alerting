@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/bikojii/metrics-alerting/internal/config"
 	models "github.com/bikojii/metrics-alerting/internal/model"
+	"log"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -111,6 +113,17 @@ func (a *Agent) Run() {
 }
 
 func main() {
-	agent := NewAgent("http://localhost:8080", 2*time.Second, 10*time.Second)
-	agent.Run()
+	cfg := config.LoadAgentConfig()
+
+	log.Println("Agent will send metrics to", cfg.ServerAddress)
+	log.Println("Report interval:", cfg.ReportInterval, "seconds")
+	log.Println("Poll interval:", cfg.PollInterval, "seconds")
+
+	// Создаём и запускаем агента с интервалами из конфигурации
+	a := NewAgent(
+		cfg.ServerAddress,
+		time.Duration(cfg.PollInterval)*time.Second,
+		time.Duration(cfg.ReportInterval)*time.Second,
+	)
+	a.Run()
 }
