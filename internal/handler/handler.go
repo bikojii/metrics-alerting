@@ -81,7 +81,7 @@ func GetValueHandler(store *repository.MemStorage) http.HandlerFunc {
 
 		switch metric.MType {
 		case models.Gauge:
-			fmt.Fprintf(w, "%f", *metric.Value)
+			fmt.Fprintf(w, "%.3f", *metric.Value)
 
 		case models.Counter:
 			fmt.Fprintf(w, "%d", *metric.Delta)
