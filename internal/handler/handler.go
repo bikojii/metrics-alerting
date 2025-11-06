@@ -17,7 +17,8 @@ func UpdateHandler(store *repository.MemStorage) http.HandlerFunc {
 		valueStr := chi.URLParam(r, "value")
 
 		if mType == "" || name == "" || valueStr == "" {
-			http.Error(w, "Not Found", http.StatusBadRequest)
+			http.Error(w, "Not Found", http.StatusNotFound)
+			return
 		}
 
 		var metric models.Metrics
