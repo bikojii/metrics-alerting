@@ -17,5 +17,5 @@ func main() {
 	r.Get("/", handler.ListMetricsHandler(store))
 
 	log.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
