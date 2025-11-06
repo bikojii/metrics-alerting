@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,16 +13,19 @@ import (
 
 func TestUpdateHandlerGauge(t *testing.T) {
 	store := repository.NewMemStorage()
-	h := handler.UpdateHandler(store)
+
+	r := chi.NewRouter()
+	r.Post("/update/{type}/{name}/{value}", handler.UpdateHandler(store))
 
 	// Создаём HTTP-запрос для обновления Gauge метрики
 	req := httptest.NewRequest("POST", "/update/gauge/RandomValue/3.14", nil)
 	w := httptest.NewRecorder()
 
-	h(w, req)
+	r.ServeHTTP(w, req)
 
 	resp := w.Result()
 	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Ожидался статус 200, получили %d", resp.StatusCode)
 	}
@@ -38,13 +42,15 @@ func TestUpdateHandlerGauge(t *testing.T) {
 
 func TestUpdateHandlerCounter(t *testing.T) {
 	store := repository.NewMemStorage()
-	h := handler.UpdateHandler(store)
+
+	r := chi.NewRouter()
+	r.Post("/update/{type}/{name}/{value}", handler.UpdateHandler(store))
 
 	// Отправляем Counter метрику
 	req := httptest.NewRequest("POST", "/update/counter/PollCount/7", nil)
 	w := httptest.NewRecorder()
 
-	h(w, req)
+	r.ServeHTTP(w, req)
 
 	resp := w.Result()
 	defer resp.Body.Close()
