@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/go-chi/chi/v5"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -9,6 +8,7 @@ import (
 	"github.com/bikojii/metrics-alerting/internal/handler"
 	"github.com/bikojii/metrics-alerting/internal/model"
 	"github.com/bikojii/metrics-alerting/internal/repository"
+	"github.com/go-chi/chi/v5"
 )
 
 func TestUpdateHandlerGauge(t *testing.T) {
@@ -17,7 +17,6 @@ func TestUpdateHandlerGauge(t *testing.T) {
 	r := chi.NewRouter()
 	r.Post("/update/{type}/{name}/{value}", handler.UpdateHandler(store))
 
-	// Создаём HTTP-запрос для обновления Gauge метрики
 	req := httptest.NewRequest("POST", "/update/gauge/RandomValue/3.14", nil)
 	w := httptest.NewRecorder()
 
@@ -30,7 +29,6 @@ func TestUpdateHandlerGauge(t *testing.T) {
 		t.Errorf("Ожидался статус 200, получили %d", resp.StatusCode)
 	}
 
-	// Проверяем через GetMetric
 	metric, ok := store.GetMetric("RandomValue", model.Gauge)
 	if !ok {
 		t.Fatal("Метрика RandomValue не найдена в хранилище")
@@ -46,7 +44,6 @@ func TestUpdateHandlerCounter(t *testing.T) {
 	r := chi.NewRouter()
 	r.Post("/update/{type}/{name}/{value}", handler.UpdateHandler(store))
 
-	// Отправляем Counter метрику
 	req := httptest.NewRequest("POST", "/update/counter/PollCount/7", nil)
 	w := httptest.NewRecorder()
 

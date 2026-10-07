@@ -1,34 +1,45 @@
 package repository
 
-import models "github.com/bikojii/metrics-alerting/internal/model"
+import (
+	"sort"
+	"sync"
+
+	models "github.com/bikojii/metrics-alerting/internal/model"
+)
 
 type MemStorage struct {
-	Gauges   map[string]float64
-	Counters map[string]int64
+	mu       sync.RWMutex
+	gauges   map[string]float64
+	counters map[string]int64
 }
 
 func NewMemStorage() *MemStorage {
-	return &MemStorage{
-		Gauges:   make(map[string]float64),
-		Counters: make(map[string]int64),
-	}
+	return &MemStorage{gauges: make(map[string]float64), counters: make(map[string]int64)}
 }
 
 func (m *MemStorage) UpdateGauge(name string, value float64) {
-	m.Gauges[name] = value
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.gauges[name] = value
 }
 
 func (m *MemStorage) UpdateCounter(name string, delta int64) {
-	m.Counters[name] += delta
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.counters[name] += delta
 }
 
 func (m *MemStorage) GetGauge(name string) (float64, bool) {
-	v, ok := m.Gauges[name]
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	v, ok := m.gauges[name]
 	return v, ok
 }
 
 func (m *MemStorage) GetCounter(name string) (int64, bool) {
-	v, ok := m.Counters[name]
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	v, ok := m.counters[name]
 	return v, ok
 }
 
@@ -36,34 +47,46 @@ func (m *MemStorage) SaveMetric(metric models.Metrics) {
 	switch metric.MType {
 	case models.Gauge:
 		if metric.Value != nil {
-			m.Gauges[metric.ID] = *metric.Value
+			m.UpdateGauge(metric.ID, *metric.Value)
 		}
 	case models.Counter:
 		if metric.Delta != nil {
-			m.Counters[metric.ID] += *metric.Delta
+			m.UpdateCounter(metric.ID, *metric.Delta)
 		}
 	}
 }
 
-func (m *MemStorage) GetMetric(id string, mtype string) (models.Metrics, bool) {
+func (m *MemStorage) GetMetric(id, mtype string) (models.Metrics, bool) {
 	switch mtype {
 	case models.Gauge:
-		if v, ok := m.Gauges[id]; ok {
-			return models.Metrics{
-				ID:    id,
-				MType: models.Gauge,
-				Value: &v,
-			}, true
+		if v, ok := m.GetGauge(id); ok {
+			return models.Metrics{ID: id, MType: mtype, Value: &v}, true
 		}
-
 	case models.Counter:
-		if v, ok := m.Counters[id]; ok {
-			return models.Metrics{
-				ID:    id,
-				MType: models.Counter,
-				Delta: &v,
-			}, true
+		if v, ok := m.GetCounter(id); ok {
+			return models.Metrics{ID: id, MType: mtype, Delta: &v}, true
 		}
 	}
 	return models.Metrics{}, false
+}
+
+func (m *MemStorage) ListMetrics() []models.Metrics {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	metrics := make([]models.Metrics, 0, len(m.gauges)+len(m.counters))
+	for name, value := range m.gauges {
+		v := value
+		metrics = append(metrics, models.Metrics{ID: name, MType: models.Gauge, Value: &v})
+	}
+	for name, delta := range m.counters {
+		d := delta
+		metrics = append(metrics, models.Metrics{ID: name, MType: models.Counter, Delta: &d})
+	}
+	sort.Slice(metrics, func(i, j int) bool {
+		if metrics[i].ID == metrics[j].ID {
+			return metrics[i].MType < metrics[j].MType
+		}
+		return metrics[i].ID < metrics[j].ID
+	})
+	return metrics
 }

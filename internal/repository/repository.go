@@ -1,8 +1,9 @@
 package repository
 
+import models "github.com/bikojii/metrics-alerting/internal/model"
+
 type Storage interface {
-	UpdateGauge(name string, value float64)
-	UpdateCounter(name string, delta int64)
-	GetGauge(name string) (float64, bool)
-	GetCounter(name string) (int64, bool)
+	SaveMetric(models.Metrics)
+	GetMetric(string, string) (models.Metrics, bool)
+	ListMetrics() []models.Metrics
 }
